@@ -1,18 +1,37 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../store/useAuth';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isRegisterRoute = location.pathname === '/register';
   const [isLogin, setIsLogin] = useState(!isRegisterRoute);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   
-  const { login, register, isLoading } = useAuth();
+  const { login, register, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get('redirect') || '/';
+  const sessionExpired = searchParams.get('session') === 'expired';
+
+  // Show session expired message
+  useEffect(() => {
+    if (sessionExpired) {
+      toast.error('Your session has expired. Please login again.');
+    }
+  }, [sessionExpired]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(redirectTo);
+    }
+  }, [isAuthenticated, navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +39,7 @@ const LoginPage = () => {
       if (isLogin) {
         await login(email, password);
         toast.success("Login successful!");
-        navigate('/');
+        navigate(redirectTo);
       } else {
         await register(name, email, password);
         toast.success("Account created! Please login.");
@@ -28,7 +47,7 @@ const LoginPage = () => {
         setPassword('');
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || (isLogin ? "Login failed" : "Registration failed"));
+      toast.error(error?.response?.data?.message || error?.response?.data?.error || (isLogin ? "Login failed" : "Registration failed"));
     }
   };
 
@@ -126,7 +145,7 @@ const LoginPage = () => {
 
             {isLogin && (
               <div className="mt-4 text-center">
-                <a href="#" className="text-sm text-primary hover:underline">Forgot Password?</a>
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot Password?</Link>
               </div>
             )}
 

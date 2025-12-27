@@ -106,6 +106,14 @@ const Navbar = () => {
                       <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                     </div>
                     <Link 
+                      to="/profile" 
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <User className="w-4 h-4" />
+                      My Profile
+                    </Link>
+                    <Link 
                       to="/orders" 
                       className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setShowDropdown(false)}
@@ -121,9 +129,27 @@ const Navbar = () => {
                       <MapPin className="w-4 h-4" />
                       My Addresses
                     </Link>
+                    <Link 
+                      to="/my-reviews" 
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      <Package className="w-4 h-4" />
+                      My Reviews
+                    </Link>
+                    {user?.role === 'ADMIN' && (
+                      <Link 
+                        to="/admin" 
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 border-t border-gray-100"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <Package className="w-4 h-4" />
+                        Admin Panel
+                      </Link>
+                    )}
                     <button 
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-gray-50 border-t border-gray-100"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout

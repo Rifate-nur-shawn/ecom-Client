@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 interface Order {
   id: string;
   status: string;
-  totalAmount: number;
-  createdAt: string;
+  total_amount: number;
+  created_at: string;
   items: Array<{
     id: string;
     quantity: number;
@@ -16,7 +16,7 @@ interface Order {
     product: {
       id: string;
       name: string;
-      imageUrl: string;
+      image_url: string;
     };
   }>;
 }
@@ -40,8 +40,11 @@ const OrdersPage = () => {
   const fetchOrders = async () => {
     try {
       const { data } = await api.get('/orders/my');
-      setOrders(data.data || data || []);
-    } catch (error) {
+      // Handle nested data structure
+      const ordersData = data?.data?.orders || data?.data || data?.orders || data || [];
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+    } catch (error: any) {
+      console.error('Failed to load orders:', error);
       toast.error('Failed to load orders');
     } finally {
       setLoading(false);
@@ -92,6 +95,9 @@ const OrdersPage = () => {
         {orders.map((order) => {
           const status = statusConfig[order.status] || statusConfig.PENDING;
           const StatusIcon = status.icon;
+          // Support both snake_case and camelCase
+          const totalAmount = order.total_amount || (order as any).totalAmount || 0;
+          const createdAt = order.created_at || (order as any).createdAt;
           
           return (
             <div key={order.id} className="bg-white rounded-sm shadow-card overflow-hidden">
@@ -108,31 +114,34 @@ const OrdersPage = () => {
                   </span>
                 </div>
                 <span className="text-xs text-gray-500">
-                  {new Date(order.createdAt).toLocaleDateString('en-US', {
+                  {createdAt ? new Date(createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
-                  })}
+                  }) : 'N/A'}
                 </span>
               </div>
 
               {/* Order Items */}
               <div className="p-4">
-                {order.items.slice(0, 2).map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 py-2">
-                    <img 
-                      src={item.product?.imageUrl || 'https://via.placeholder.com/60'} 
-                      alt={item.product?.name}
-                      className="w-16 h-16 object-cover rounded-sm border border-gray-100"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-800 line-clamp-1">{item.product?.name}</p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                {order.items?.slice(0, 2).map((item) => {
+                  const imageUrl = item.product?.image_url || (item.product as any)?.imageUrl || 'https://via.placeholder.com/60';
+                  return (
+                    <div key={item.id} className="flex items-center gap-4 py-2">
+                      <img 
+                        src={imageUrl} 
+                        alt={item.product?.name}
+                        className="w-16 h-16 object-cover rounded-sm border border-gray-100"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-800 line-clamp-1">{item.product?.name || 'Unknown Product'}</p>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="font-medium text-primary">৳ {(item.price || 0).toLocaleString()}</p>
                     </div>
-                    <p className="font-medium text-primary">৳ {item.price.toLocaleString()}</p>
-                  </div>
-                ))}
-                {order.items.length > 2 && (
+                  );
+                })}
+                {order.items?.length > 2 && (
                   <p className="text-xs text-gray-500 mt-2">+{order.items.length - 2} more items</p>
                 )}
               </div>
@@ -141,7 +150,7 @@ const OrdersPage = () => {
               <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50">
                 <div>
                   <span className="text-sm text-gray-500">Total: </span>
-                  <span className="text-lg font-bold text-primary">৳ {order.totalAmount.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-primary">৳ {totalAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex gap-2">
                   {order.status === 'PENDING' && (
