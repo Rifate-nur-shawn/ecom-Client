@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Tailwind v4 theme configuration */
+@theme {
+  --color-primary: #f85606;
+  --color-primary-hover: #d04205;
+  --color-background: #eff0f5;
+  --color-surface: #ffffff;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+}
+
+/* Custom CSS properties */
+:root {
+  --shadow-card: 0 2px 4px 0 rgba(0,0,0,.05);
+  --shadow-hover: 0 4px 12px 0 rgba(0,0,0,.15);
+}
+
+/* Base body styling */
+body {
+  background-color: var(--color-background);
+  color: #212121;
+  font-family: 'Roboto', 'Inter', sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom component classes */
+.daraz-card {
+  background-color: white;
+  border-radius: 0.125rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s;
+  overflow: hidden;
+}
+.daraz-card:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.daraz-btn-primary {
+  background-color: #f85606;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.125rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  border: none;
+}
+.daraz-btn-primary:hover {
+  background-color: #d04205;
+}
+.daraz-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.daraz-btn-outline {
+  border: 1px solid #f85606;
+  color: #f85606;
+  padding: 0.5rem 1rem;
+  border-radius: 0.125rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  background-color: transparent;
+}
+.daraz-btn-outline:hover {
+  background-color: #fff7ed;
+}
+
+.daraz-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  max-width: 1188px;
+}
+@media (min-width: 768px) {
+  .daraz-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Primary color utilities - fallback for Tailwind classes */
+.bg-primary { background-color: #f85606 !important; }
+.bg-primary-hover { background-color: #d04205 !important; }
+.text-primary { color: #f85606 !important; }
+.border-primary { border-color: #f85606 !important; }
+.hover\:bg-primary:hover { background-color: #f85606 !important; }
+.hover\:bg-primary-hover:hover { background-color: #d04205 !important; }
+.hover\:text-primary:hover { color: #f85606 !important; }
