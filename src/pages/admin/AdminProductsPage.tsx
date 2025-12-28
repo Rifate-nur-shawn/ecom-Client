@@ -28,11 +28,19 @@ const AdminProductsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    price: number | '';
+    stock: number | '';
+    is_preorder: boolean;
+    category_id: string;
+    image_url: string;
+  }>({
     name: '',
     description: '',
-    price: 0,
-    stock: 0,
+    price: '',
+    stock: '',
     is_preorder: false,
     category_id: '',
     image_url: '',
@@ -58,7 +66,19 @@ const AdminProductsPage = () => {
   const fetchCategories = async () => {
     try {
       const { data } = await api.get('/categories');
-      const categoriesData = data?.data?.categories || data?.categories || data?.data || data || [];
+      // Handle multiple possible response structures
+      let categoriesData = data?.data;
+      if (Array.isArray(categoriesData)) {
+        // Response is { data: [...] }
+      } else if (categoriesData?.categories) {
+        categoriesData = categoriesData.categories;
+      } else if (data?.categories) {
+        categoriesData = data.categories;
+      } else if (Array.isArray(data)) {
+        categoriesData = data;
+      } else {
+        categoriesData = [];
+      }
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
       console.error('Failed to load categories');
@@ -71,8 +91,8 @@ const AdminProductsPage = () => {
       const payload = {
         name: formData.name,
         description: formData.description,
-        price: formData.price,
-        stock: formData.stock,
+        price: Number(formData.price) || 0,
+        stock: Number(formData.stock) || 0,
         is_preorder: formData.is_preorder,
         category_id: formData.category_id || undefined,
         image_url: formData.image_url || undefined,
@@ -125,8 +145,8 @@ const AdminProductsPage = () => {
     setFormData({
       name: '',
       description: '',
-      price: 0,
-      stock: 0,
+      price: '',
+      stock: '',
       is_preorder: false,
       category_id: '',
       image_url: '',
@@ -271,10 +291,11 @@ const AdminProductsPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Price (৳) *</label>
                   <input
                     type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    value={formData.price === '' ? '' : formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? '' : Number(e.target.value) })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-orange-500 outline-none"
                     min="0"
+                    placeholder="Enter price"
                     required
                   />
                 </div>
@@ -282,10 +303,11 @@ const AdminProductsPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
                   <input
                     type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                    value={formData.stock === '' ? '' : formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value === '' ? '' : Number(e.target.value) })}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-orange-500 outline-none"
                     min="0"
+                    placeholder="Enter stock"
                     required
                   />
                 </div>

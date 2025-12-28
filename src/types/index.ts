@@ -11,10 +11,14 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
-  imageUrl: string;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
+  imageUrl?: string;
+  image_url?: string;
+  category?: string;
+  category_id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem {

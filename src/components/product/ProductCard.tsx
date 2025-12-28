@@ -17,7 +17,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Image Container */}
       <div className="relative h-[180px] w-full bg-gray-100 overflow-hidden">
         <img 
-          src={product.imageUrl || 'https://via.placeholder.com/200'} 
+          src={product.imageUrl || (product as any).image_url || 'https://via.placeholder.com/200'} 
           alt={product.name} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />

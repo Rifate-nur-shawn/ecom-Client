@@ -28,7 +28,7 @@ const MyReviewsPage = () => {
 
   const fetchReviews = async () => {
     try {
-      const { data } = await api.get('/reviews/my');
+      const { data } = await api.get('/reviews/user/me');
       setReviews(data.data || data || []);
     } catch (error) {
       toast.error('Failed to load reviews');
