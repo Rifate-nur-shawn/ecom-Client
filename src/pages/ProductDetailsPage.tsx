@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Minus, Plus, Star, Heart, Share2, MapPin, Truck, ShieldCheck, User } from 'lucide-react';
 import { api } from '../lib/api';
@@ -6,6 +6,17 @@ import type { Product } from '../types';
 import { useCart } from '../store/useCart';
 import { useAuth } from '../store/useAuth';
 import toast from 'react-hot-toast';
+
+interface ProductImage {
+  id: string;
+  url: string;
+  alt_text?: string;
+  is_primary?: boolean;
+}
+
+interface ExtendedProduct extends Product {
+  images?: ProductImage[];
+}
 
 interface Review {
   id: string;
@@ -20,12 +31,16 @@ interface Review {
 
 const ProductDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ExtendedProduct | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
@@ -52,7 +67,7 @@ const ProductDetailsPage = () => {
   const fetchReviews = async () => {
     try {
       const { data } = await api.get(`/reviews/products/${id}`);
-      setReviews(data.data || data || []);
+      setReviews(data.data?.reviews || data.data || data.reviews || data || []);
     } catch (error) {
       console.error("Failed to fetch reviews");
     }
@@ -96,6 +111,40 @@ const ProductDetailsPage = () => {
     }
   };
 
+  // Get all available images for the product
+  const getProductImages = (): string[] => {
+    const images: string[] = [];
+    
+    // Add images from the images array (ProductImage table)
+    if (product?.images && Array.isArray(product.images) && product.images.length > 0) {
+      product.images.forEach(img => {
+        if (img.url) images.push(img.url);
+      });
+    }
+    
+    // Add the main image_url if exists and not already in array
+    const mainImage = product?.imageUrl || (product as any)?.image_url;
+    if (mainImage && !images.includes(mainImage)) {
+      images.unshift(mainImage);
+    }
+    
+    // Return at least placeholder if no images
+    return images.length > 0 ? images : ['https://via.placeholder.com/400'];
+  };
+
+  const productImages = product ? getProductImages() : [];
+  const currentImage = productImages[selectedImageIndex] || productImages[0];
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setZoomPosition({ x, y });
+  };
+
   const averageRating = reviews.length > 0 
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
@@ -107,18 +156,46 @@ const ProductDetailsPage = () => {
   return (
     <div className="daraz-container py-4">
       <div className="bg-white rounded-sm shadow-card p-4 flex flex-col md:flex-row gap-8">
-        {/* Left: Image Gallery */}
+        {/* Left: Image Gallery with Zoom */}
         <div className="md:w-1/3">
-          <div className="w-full h-80 bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 rounded-sm">
-            <img src={product.imageUrl || 'https://via.placeholder.com/300'} alt={product.name} className="max-h-full max-w-full object-contain" />
+          {/* Main Image with Zoom */}
+          <div 
+            ref={imageContainerRef}
+            className="w-full h-80 bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 rounded-sm overflow-hidden cursor-zoom-in relative"
+            onMouseEnter={() => setIsZoomed(true)}
+            onMouseLeave={() => setIsZoomed(false)}
+            onMouseMove={handleMouseMove}
+          >
+            <img 
+              src={currentImage} 
+              alt={product.name} 
+              className={`max-h-full max-w-full object-contain transition-transform duration-200 ${isZoomed ? 'scale-150' : 'scale-100'}`}
+              style={isZoomed ? {
+                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
+              } : undefined}
+            />
           </div>
-          <div className="flex gap-2 justify-center">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className={`w-14 h-14 border cursor-pointer hover:border-primary p-1 ${i===0 ? 'border-primary' : 'border-gray-200'}`}>
-                <img src={product.imageUrl || 'https://via.placeholder.com/50'} className="w-full h-full object-cover" alt="" />
-              </div>
-            ))}
-          </div>
+          
+          {/* Thumbnail Gallery - Only show if there are images */}
+          {productImages.length > 0 && (
+            <div className="flex gap-2 justify-center flex-wrap">
+              {productImages.map((img, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => setSelectedImageIndex(i)}
+                  className={`w-14 h-14 border cursor-pointer hover:border-primary p-1 transition-all ${
+                    selectedImageIndex === i ? 'border-primary border-2' : 'border-gray-200'
+                  }`}
+                >
+                  <img 
+                    src={img} 
+                    className="w-full h-full object-cover" 
+                    alt={`Product view ${i + 1}`} 
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Middle: Details */}
@@ -320,3 +397,4 @@ const ProductDetailsPage = () => {
 };
 
 export default ProductDetailsPage;
+
