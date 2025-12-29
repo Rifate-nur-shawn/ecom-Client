@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, ChevronDown, LogOut, Package, MapPin } from 'lucide-react';
+import { ShoppingCart, User, ChevronDown, LogOut, Package, MapPin } from 'lucide-react';
 import { useAuth } from '../../store/useAuth';
 import { useCart } from '../../store/useCart';
 import { useState, useRef, useEffect } from 'react';
+import SearchBar from '../search/SearchBar';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -63,18 +64,7 @@ const Navbar = () => {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-grow max-w-2xl relative">
-            <div className="flex w-full bg-[#f5f5f5] rounded-l-md rounded-r-md overflow-hidden">
-              <input 
-                type="text" 
-                placeholder="Search in Atom Drops" 
-                className="w-full px-4 py-3 bg-[#eff0f5] text-sm text-gray-700 focus:outline-none placeholder-gray-500"
-              />
-              <button className="bg-[#f85606] text-white px-6 hover:bg-[#d04205] transition-colors flex items-center justify-center">
-                <Search className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+          <SearchBar className="flex-grow max-w-2xl" />
 
           {/* Right Section */}
           <div className="flex items-center space-x-6">
